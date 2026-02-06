@@ -1,0 +1,36 @@
+import { NextResponse } from "next/server";
+
+export async function GET() {
+  try {
+    const res = await fetch(
+      "https://api.poolsidefm.workers.dev/v1/get_tracks_by_playlist",
+      { next: { revalidate: 300 } }
+    );
+    const data = await res.json();
+
+    const channels = data.payload.map((channel: any) => ({
+      id: channel.slug,
+      url: channel.url,
+      name: channel.name.toLowerCase().includes("poolsuite fm")
+        ? "Poolsuite FM"
+        : channel.name,
+      slug: channel.slug,
+      order: channel.order,
+      totalTracks: channel.total_tracks,
+      tracks: channel.tracks_in_order.map((track: any) => ({
+        id: track.soundcloud_id,
+        url: `https://api.poolsidefm.workers.dev/v2/get_sc_mp3_stream?track_id=${track.soundcloud_id}`,
+        title: track.title,
+        artist: track.artist,
+        durationMs: track.duration_ms,
+        dateAdded: track.date_added,
+        waveformUrl: track.waveform_url.replace(".png", ".json"),
+        soundcloudUrl: track.permalink_url,
+      })),
+    }));
+
+    return NextResponse.json(channels);
+  } catch (error) {
+    return NextResponse.json([], { status: 500 });
+  }
+}
