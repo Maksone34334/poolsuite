@@ -1,19 +1,19 @@
 @import "tailwindcss";
 
-@theme {
+@theme inline {
   --font-sans: var(--font-chicago), "Geneva", "Verdana", monospace;
   --font-mono: var(--font-chicago), monospace;
 
-  --color-background: var(--theme-secondary);
-  --color-foreground: var(--theme-primary);
-  --color-card: var(--theme-secondary);
-  --color-card-foreground: var(--theme-primary);
-  --color-primary: var(--theme-primary);
-  --color-primary-foreground: var(--theme-secondary);
-  --color-muted: color-mix(in srgb, var(--theme-primary) 15%, var(--theme-secondary));
-  --color-muted-foreground: color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary));
-  --color-border: var(--theme-primary);
-  --color-ring: var(--theme-primary);
+  --color-background: #faeed9;
+  --color-foreground: #000000;
+  --color-card: #faeed9;
+  --color-card-foreground: #000000;
+  --color-primary: #000000;
+  --color-primary-foreground: #faeed9;
+  --color-muted: #e5dcc6;
+  --color-muted-foreground: #444444;
+  --color-border: #000000;
+  --color-ring: #000000;
 
   --radius: 0.25rem;
 }

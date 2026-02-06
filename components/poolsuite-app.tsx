@@ -32,14 +32,18 @@ export function PoolsuiteApp() {
 
   // Initialize theme and library
   useEffect(() => {
+    console.log("[v0] PoolsuiteApp mounted, initializing...");
     const storedTheme = getStoredTheme();
     applyTheme(storedTheme);
     setCurrentThemeName(storedTheme);
 
     initLibrary().then((channels) => {
+      console.log("[v0] Library loaded, channels:", channels.length);
       if (channels.length > 0 && !usePlayerStore.getState().queue) {
         playChannel(channels[0], false);
       }
+    }).catch((err) => {
+      console.error("[v0] Library init error:", err);
     });
   }, []);
 

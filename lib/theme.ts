@@ -52,14 +52,22 @@ export function applyTheme(themeName: string) {
   const theme = appThemes[themeName];
   if (!theme) return;
 
-  document.documentElement.style.setProperty(
-    "--theme-primary",
-    theme.colors.primary
-  );
-  document.documentElement.style.setProperty(
-    "--theme-secondary",
-    theme.colors.secondary
-  );
+  const root = document.documentElement;
+  const p = theme.colors.primary;
+  const s = theme.colors.secondary;
+
+  root.style.setProperty("--theme-primary", p);
+  root.style.setProperty("--theme-secondary", s);
+
+  // Update Tailwind design tokens
+  root.style.setProperty("--color-background", s);
+  root.style.setProperty("--color-foreground", p);
+  root.style.setProperty("--color-card", s);
+  root.style.setProperty("--color-card-foreground", p);
+  root.style.setProperty("--color-primary", p);
+  root.style.setProperty("--color-primary-foreground", s);
+  root.style.setProperty("--color-border", p);
+  root.style.setProperty("--color-ring", p);
 
   try {
     localStorage.setItem("poolsuite-theme", themeName);

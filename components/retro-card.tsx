@@ -73,14 +73,10 @@ export const RetroCard = forwardRef<HTMLButtonElement, RetroCardProps>(
             inverted
               ? "border-primary-foreground bg-foreground text-primary-foreground"
               : "border-foreground bg-card text-card-foreground",
-            onClick && "cursor-pointer active:translate-x-[var(--press)] active:translate-y-[var(--press)]",
+            onClick && "cursor-pointer",
             className
           )}
-          style={
-            {
-              "--press": `${offset}px`,
-            } as React.CSSProperties
-          }
+          style={{} as React.CSSProperties}
           {...props}
         >
           {children}
