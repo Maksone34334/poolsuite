@@ -5,6 +5,7 @@ import { NavigationBar } from "@/components/navigation-bar";
 import { PlayerScreen } from "@/components/player-screen";
 import { ThemesScreen } from "@/components/themes-screen";
 import { AboutScreen } from "@/components/about-screen";
+import { UploadScreen } from "@/components/upload-screen";
 import { initLibrary, useLibraryStore } from "@/lib/store/library";
 import {
   playChannel,
@@ -16,6 +17,7 @@ import { applyTheme, getStoredTheme, defaultThemeName } from "@/lib/theme";
 
 const screens = [
   { id: "Player", name: "Poolsuite FM" },
+  { id: "MyMusic", name: "My Music" },
   { id: "Themes", name: "Themes" },
   { id: "About", name: "About" },
 ];
@@ -71,6 +73,11 @@ export function PoolsuiteApp() {
           {/* Player */}
           <div className="flex h-full w-full flex-shrink-0 flex-col">
             <PlayerScreen isLoading={isLoading} error={error} />
+          </div>
+
+          {/* My Music */}
+          <div className="flex h-full w-full flex-shrink-0 flex-col">
+            <UploadScreen />
           </div>
 
           {/* Themes */}
