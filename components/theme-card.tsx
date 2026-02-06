@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { RetroCard } from "@/components/retro-card";
-import { useThemeStore, type AppTheme } from "@/lib/theme-store";
-import { Check } from "lucide-react";
+import { RetroCard } from "@/components/retro-card"
+import { useThemeStore, type AppTheme } from "@/lib/theme-store"
+import { Check } from "lucide-react"
 
 interface ThemeCardProps {
-  theme: AppTheme;
-  isSelected: boolean;
+  theme: AppTheme
+  isSelected: boolean
 }
 
 export function ThemeCard({ theme, isSelected }: ThemeCardProps) {
-  const setTheme = useThemeStore((s) => s.setTheme);
+  const setTheme = useThemeStore((s) => s.setTheme)
 
   return (
     <RetroCard
@@ -24,20 +24,30 @@ export function ThemeCard({ theme, isSelected }: ThemeCardProps) {
         className="absolute inset-0"
         style={{ backgroundColor: theme.colors.secondary }}
       >
-        {/* Dithered pattern */}
+        {/* Dithered checkerboard pattern */}
         <svg className="h-full w-full opacity-30" aria-hidden="true">
           <defs>
             <pattern
-              id={`dither-${theme.name}`}
+              id={`dither-${theme.name.replace(/\s/g, "-")}`}
               width="4"
               height="4"
               patternUnits="userSpaceOnUse"
             >
               <rect width="2" height="2" fill={theme.colors.primary} />
-              <rect x="2" y="2" width="2" height="2" fill={theme.colors.primary} />
+              <rect
+                x="2"
+                y="2"
+                width="2"
+                height="2"
+                fill={theme.colors.primary}
+              />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill={`url(#dither-${theme.name})`} />
+          <rect
+            width="100%"
+            height="100%"
+            fill={`url(#dither-${theme.name.replace(/\s/g, "-")})`}
+          />
         </svg>
       </div>
 
@@ -56,5 +66,5 @@ export function ThemeCard({ theme, isSelected }: ThemeCardProps) {
         {theme.name}
       </span>
     </RetroCard>
-  );
+  )
 }

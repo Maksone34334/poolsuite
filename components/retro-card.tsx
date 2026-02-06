@@ -1,18 +1,18 @@
-"use client";
+"use client"
 
-import { cn } from "@/lib/utils";
-import { type ReactNode, type ButtonHTMLAttributes } from "react";
+import { cn } from "@/lib/utils"
+import { type ReactNode, type MouseEventHandler } from "react"
 
-interface RetroCardProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  inverted?: boolean;
-  shadowSize?: "small" | "big";
-  children: ReactNode;
-  className?: string;
-  containerClassName?: string;
-  as?: "div" | "button";
+interface RetroCardProps {
+  inverted?: boolean
+  shadowSize?: "small" | "big"
+  children: ReactNode
+  className?: string
+  containerClassName?: string
+  onClick?: MouseEventHandler<HTMLElement>
 }
 
-const shadowConfig = { small: 1, big: 3 };
+const shadowConfig = { small: 1, big: 3 }
 
 export function RetroCard({
   inverted = false,
@@ -20,12 +20,10 @@ export function RetroCard({
   children,
   className,
   containerClassName,
-  as = "div",
   onClick,
-  ...props
 }: RetroCardProps) {
-  const offset = shadowConfig[shadowSize];
-  const Wrapper = as === "button" || onClick ? "button" : "div";
+  const offset = shadowConfig[shadowSize]
+  const Tag = onClick ? "button" : "div"
 
   return (
     <div
@@ -34,49 +32,55 @@ export function RetroCard({
     >
       {/* Placeholder shadow */}
       <div
-        className={cn(
-          "absolute rounded-[var(--radius)]",
-          inverted ? "bg-secondary" : "bg-primary"
-        )}
+        className="absolute rounded-[var(--radius)]"
         style={{
           top: 0,
           right: offset,
           bottom: offset,
           left: 0,
+          backgroundColor: inverted
+            ? "var(--theme-secondary)"
+            : "var(--theme-primary)",
         }}
       />
       {/* Offset shadow */}
       <div
-        className={cn(
-          "absolute rounded-[var(--radius)]",
-          inverted ? "bg-secondary" : "bg-primary"
-        )}
+        className="absolute rounded-[var(--radius)]"
         style={{
           top: offset,
           left: offset,
           right: 0,
           bottom: 0,
+          backgroundColor: inverted
+            ? "var(--theme-secondary)"
+            : "var(--theme-primary)",
         }}
       />
-      <Wrapper
+      <Tag
         className={cn(
           "relative z-10 rounded-[var(--radius)] border",
-          inverted
-            ? "border-secondary bg-primary text-secondary"
-            : "border-primary bg-secondary text-primary",
-          onClick && "cursor-pointer active:translate-x-[var(--shadow-offset)] active:translate-y-[var(--shadow-offset)]",
+          onClick &&
+            "cursor-pointer active:translate-x-[var(--shadow-offset)] active:translate-y-[var(--shadow-offset)]",
           className
         )}
         style={
           {
             "--shadow-offset": `${offset}px`,
+            backgroundColor: inverted
+              ? "var(--theme-primary)"
+              : "var(--theme-secondary)",
+            borderColor: inverted
+              ? "var(--theme-secondary)"
+              : "var(--theme-primary)",
+            color: inverted
+              ? "var(--theme-secondary)"
+              : "var(--theme-primary)",
           } as React.CSSProperties
         }
         onClick={onClick}
-        {...(Wrapper === "button" ? props : {})}
       >
         {children}
-      </Wrapper>
+      </Tag>
     </div>
-  );
+  )
 }
