@@ -1,11 +1,10 @@
-import axios from "axios";
-
 import { Channel } from "@/store/library/types";
 
 export const fetchChannels = async (): Promise<Channel[]> => {
-  const { data } = await axios.get(
-    "https://api.poolsidefm.workers.dev/v1/get_tracks_by_playlist",
+  const response = await fetch(
+    "https://api.poolsidefm.workers.dev/v1/get_tracks_by_playlist"
   );
+  const data = await response.json();
 
   return data.payload.map((channel: any) => ({
     id: channel.slug,
