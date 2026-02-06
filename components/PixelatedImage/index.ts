@@ -1,1 +1,0 @@
-export { PixelatedImage } from "./PixelatedImage";

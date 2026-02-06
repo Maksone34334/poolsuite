@@ -1,6 +1,6 @@
 import { Track } from "@/store/library/types";
 import { TrackPlayerService } from "./types";
-import { setProgress, setIsBuffering, playNext } from "../actions";
+import { usePlayerStore } from "../store";
 
 let audio: HTMLAudioElement | null = null;
 let progressInterval: ReturnType<typeof setInterval> | null = null;
@@ -16,7 +16,7 @@ const startProgressTracking = () => {
   clearProgressInterval();
   progressInterval = setInterval(() => {
     if (audio && !audio.paused) {
-      setProgress(audio.currentTime);
+      usePlayerStore.setState({ progress: audio.currentTime });
     }
   }, 500);
 };
@@ -31,14 +31,19 @@ const createAudio = (track: Track) => {
   audio = new Audio(track.url);
   audio.crossOrigin = "anonymous";
 
-  audio.addEventListener("waiting", () => setIsBuffering(true));
-  audio.addEventListener("canplay", () => setIsBuffering(false));
+  audio.addEventListener("waiting", () => {
+    usePlayerStore.setState({ isBuffering: true });
+  });
+  audio.addEventListener("canplay", () => {
+    usePlayerStore.setState({ isBuffering: false });
+  });
   audio.addEventListener("ended", () => {
     clearProgressInterval();
-    playNext();
+    // Lazy import to avoid circular dependency
+    import("../actions").then(({ playNext }) => playNext());
   });
   audio.addEventListener("error", () => {
-    playNext(false);
+    import("../actions").then(({ playNext }) => playNext(false));
   });
 };
 
