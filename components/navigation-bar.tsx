@@ -1,7 +1,5 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
 interface Screen {
   id: string;
   name: string;
@@ -21,14 +19,22 @@ export function NavigationBar({
   onNext,
 }: NavigationBarProps) {
   return (
-    <div style={{ backgroundColor: "var(--theme-primary)", color: "var(--theme-secondary)" }}>
+    <div
+      style={{
+        backgroundColor: "var(--theme-primary)",
+        color: "var(--theme-secondary)",
+      }}
+    >
       <div className="flex items-center">
         <button
           onClick={onPrevious}
-          className="flex h-10 w-12 items-center justify-center transition-opacity hover:opacity-70"
+          disabled={activeIndex === 0}
+          className="flex h-10 w-12 items-center justify-center transition-opacity hover:opacity-70 disabled:opacity-30"
           aria-label="Previous screen"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
         </button>
 
         <div className="flex-1 overflow-hidden">
@@ -44,15 +50,24 @@ export function NavigationBar({
 
         <button
           onClick={onNext}
-          className="flex h-10 w-12 items-center justify-center transition-opacity hover:opacity-70"
+          disabled={activeIndex === screens.length - 1}
+          className="flex h-10 w-12 items-center justify-center transition-opacity hover:opacity-70 disabled:opacity-30"
           aria-label="Next screen"
         >
-          <ChevronRight className="h-4 w-4" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </button>
       </div>
 
-      {/* Progress indicator */}
-      <div className="relative h-0.5" style={{ backgroundColor: "var(--theme-secondary)", opacity: 0.3 }}>
+      {/* Progress bar */}
+      <div
+        className="relative h-0.5"
+        style={{
+          backgroundColor: "var(--theme-secondary)",
+          opacity: 0.3,
+        }}
+      >
         <div
           className="absolute h-full transition-all duration-300"
           style={{
