@@ -25,6 +25,10 @@ export function RetroCard({
   const offset = shadowSizeMap[shadowSize];
   const Tag = onClick ? "button" : "div";
 
+  const shadowColor = inverted ? "var(--theme-secondary)" : "var(--theme-primary)";
+  const bgColor = inverted ? "var(--theme-primary)" : "var(--theme-secondary)";
+  const borderColor = inverted ? "var(--theme-secondary)" : "var(--theme-primary)";
+
   return (
     <div
       className={cn("relative", containerClassName)}
@@ -32,11 +36,14 @@ export function RetroCard({
     >
       {/* Shadow */}
       <div
-        className={cn(
-          "absolute rounded-sm",
-          inverted ? "bg-primary-foreground" : "bg-foreground"
-        )}
-        style={{ top: offset, left: offset, right: 0, bottom: 0 }}
+        className="absolute rounded-sm"
+        style={{
+          top: offset,
+          left: offset,
+          right: 0,
+          bottom: 0,
+          backgroundColor: shadowColor,
+        }}
       />
 
       {/* Card */}
@@ -44,12 +51,14 @@ export function RetroCard({
         onClick={onClick}
         className={cn(
           "relative rounded-sm border",
-          inverted
-            ? "border-primary-foreground bg-foreground text-primary-foreground"
-            : "border-foreground bg-card text-card-foreground",
           onClick && "cursor-pointer active:translate-x-px active:translate-y-px",
           className
         )}
+        style={{
+          backgroundColor: bgColor,
+          borderColor: borderColor,
+          color: inverted ? "var(--theme-secondary)" : "var(--theme-primary)",
+        }}
       >
         {children}
       </Tag>

@@ -7,9 +7,9 @@ interface LinesProps {
 export function Lines({ className }: LinesProps) {
   return (
     <div className={cn("flex flex-col gap-[2px]", className)}>
-      <div className="h-px w-full bg-foreground" />
-      <div className="h-px w-full bg-foreground" />
-      <div className="h-px w-full bg-foreground" />
+      <div className="h-px w-full" style={{ backgroundColor: "var(--theme-primary)" }} />
+      <div className="h-px w-full" style={{ backgroundColor: "var(--theme-primary)" }} />
+      <div className="h-px w-full" style={{ backgroundColor: "var(--theme-primary)" }} />
     </div>
   );
 }

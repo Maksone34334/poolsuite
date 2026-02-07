@@ -60,15 +60,6 @@ export function UploadScreen() {
     [addFiles]
   );
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  }, []);
-
-  const handleDragLeave = useCallback(() => {
-    setIsDragOver(false);
-  }, []);
-
   const removeTrack = useCallback((id: string) => {
     setUploadedTracks((prev) => {
       const track = prev.find((t) => t.id === id);
@@ -77,45 +68,38 @@ export function UploadScreen() {
     });
   }, []);
 
-  const playAll = useCallback(() => {
-    if (uploadedTracks.length === 0) return;
-    const channel: Channel = {
+  const makeChannel = useCallback(
+    (tracks: Track[]): Channel => ({
       id: "my-music",
       url: "",
       name: "My Music",
       slug: "my-music",
-      totalTracks: uploadedTracks.length,
-      tracks: uploadedTracks,
+      totalTracks: tracks.length,
+      tracks,
       order: 999,
-    };
-    playChannel(channel, true);
-  }, [uploadedTracks]);
+    }),
+    []
+  );
+
+  const playAll = useCallback(() => {
+    if (uploadedTracks.length === 0) return;
+    playChannel(makeChannel(uploadedTracks), true);
+  }, [uploadedTracks, makeChannel]);
 
   const playTrackAt = useCallback(
     (index: number) => {
       if (uploadedTracks.length === 0) return;
-      // Reorder tracks so the clicked one is first, rest follow in order
       const reordered = [
         ...uploadedTracks.slice(index),
         ...uploadedTracks.slice(0, index),
       ];
-      const channel: Channel = {
-        id: "my-music",
-        url: "",
-        name: "My Music",
-        slug: "my-music",
-        totalTracks: reordered.length,
-        tracks: reordered,
-        order: 999,
-      };
-      playChannel(channel, true);
+      playChannel(makeChannel(reordered), true);
     },
-    [uploadedTracks]
+    [uploadedTracks, makeChannel]
   );
 
   const handleTrackClick = useCallback(
     (track: Track, index: number) => {
-      // If this track is already playing, toggle play/pause
       if (isMyMusicQueue && activeTrack?.id === track.id) {
         togglePlay();
       } else {
@@ -126,20 +110,18 @@ export function UploadScreen() {
   );
 
   return (
-    <div className="relative flex-1 overflow-y-auto bg-background">
+    <div className="relative flex-1 overflow-y-auto" style={{ backgroundColor: "var(--theme-secondary)" }}>
       <NoiseOverlay density={0.05} inverted />
       <div className="relative z-10 flex flex-col gap-2 p-2">
         {/* Drop zone */}
         <RetroCard shadowSize="big" containerClassName="w-full">
           <div
             onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            className="flex flex-col items-center gap-3 rounded-[var(--radius)] p-6"
+            onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+            onDragLeave={() => setIsDragOver(false)}
+            className="flex flex-col items-center gap-3 rounded-sm p-6"
             style={{
-              backgroundColor: isDragOver
-                ? "var(--theme-primary)"
-                : undefined,
+              backgroundColor: isDragOver ? "var(--theme-primary)" : undefined,
               color: isDragOver ? "var(--theme-secondary)" : undefined,
             }}
           >
@@ -152,10 +134,7 @@ export function UploadScreen() {
                 Drag & drop audio files here, or click below
               </span>
             </div>
-            <RetroCard
-              onClick={() => fileInputRef.current?.click()}
-              inverted={isDragOver}
-            >
+            <RetroCard onClick={() => fileInputRef.current?.click()} inverted={isDragOver}>
               <span className="block px-6 py-2 text-xs font-bold font-sans">
                 Choose Files
               </span>
@@ -177,16 +156,19 @@ export function UploadScreen() {
         {/* Track list */}
         {uploadedTracks.length > 0 && (
           <RetroCard shadowSize="big" containerClassName="w-full">
-            <div className="flex flex-col rounded-[var(--radius)]">
+            <div className="flex flex-col rounded-sm">
               {/* Header */}
-              <div className="flex items-center justify-between bg-foreground p-3">
-                <span className="text-sm font-bold font-sans text-primary-foreground">
+              <div
+                className="flex items-center justify-between p-3"
+                style={{ backgroundColor: "var(--theme-primary)", color: "var(--theme-secondary)" }}
+              >
+                <span className="text-sm font-bold font-sans">
                   {`My Music (${uploadedTracks.length})`}
                 </span>
                 <RetroCard inverted onClick={playAll}>
                   <div className="flex items-center gap-1.5 px-3 py-1">
-                    <Play className="h-3 w-3 fill-primary-foreground" />
-                    <span className="text-xs font-bold font-sans text-primary-foreground">
+                    <Play className="h-3 w-3 fill-current" />
+                    <span className="text-xs font-bold font-sans">
                       {isMyMusicQueue && isPlaying ? "Playing" : "Play All"}
                     </span>
                   </div>
@@ -198,32 +180,22 @@ export function UploadScreen() {
               {/* Tracks */}
               <div className="flex flex-col">
                 {uploadedTracks.map((track, i) => {
-                  const isActive =
-                    isMyMusicQueue && activeTrack?.id === track.id;
+                  const isActive = isMyMusicQueue && activeTrack?.id === track.id;
                   const isTrackPlaying = isActive && isPlaying;
                   return (
                     <button
                       key={track.id}
                       onClick={() => handleTrackClick(track, i)}
-                      className="flex items-center gap-3 border-b border-foreground/10 px-4 py-3 text-left transition-colors last:border-b-0 hover:opacity-70"
-                      style={
-                        isActive
-                          ? {
-                              backgroundColor: "var(--theme-primary)",
-                              color: "var(--theme-secondary)",
-                            }
-                          : undefined
-                      }
+                      className="flex items-center gap-3 px-4 py-3 text-left transition-opacity last:border-b-0 hover:opacity-70"
+                      style={{
+                        backgroundColor: isActive ? "var(--theme-primary)" : undefined,
+                        color: isActive ? "var(--theme-secondary)" : "var(--theme-primary)",
+                        borderBottom: "1px solid",
+                        borderColor: isActive ? "transparent" : "var(--theme-primary)",
+                        opacity: isActive ? 1 : undefined,
+                      }}
                     >
-                      <span
-                        className="w-5 text-right text-xs font-sans"
-                        style={{
-                          color: isActive
-                            ? "var(--theme-secondary)"
-                            : undefined,
-                          opacity: isActive ? 0.6 : 0.4,
-                        }}
-                      >
+                      <span className="w-5 text-right text-xs font-sans" style={{ opacity: isActive ? 0.6 : 0.4 }}>
                         {String(i + 1).padStart(2, "0")}
                       </span>
                       {isTrackPlaying ? (
@@ -240,16 +212,8 @@ export function UploadScreen() {
                         className="flex h-6 w-6 items-center justify-center"
                         role="button"
                         tabIndex={0}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeTrack(track.id);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.stopPropagation();
-                            removeTrack(track.id);
-                          }
-                        }}
+                        onClick={(e) => { e.stopPropagation(); removeTrack(track.id); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); removeTrack(track.id); } }}
                         aria-label={`Remove ${track.title}`}
                       >
                         <Trash2 className="h-3 w-3 opacity-40 hover:opacity-100" />
