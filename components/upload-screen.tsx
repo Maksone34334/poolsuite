@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { Upload, Music, Trash2, Play } from "lucide-react";
+import { Upload, Music, Trash2, Play, Pause } from "lucide-react";
 import { RetroCard } from "@/components/retro-card";
 import { NoiseOverlay } from "@/components/noise-overlay";
 import { Lines } from "@/components/lines";
 import {
   usePlayerStore,
   playChannel,
+  togglePlay,
   selectQueue,
+  selectActiveTrack,
+  selectIsPlaying,
 } from "@/lib/store/player";
 import type { Channel, Track } from "@/lib/store/library";
 
@@ -18,7 +21,6 @@ function createTrackFromFile(file: File): Track {
   uploadId++;
   const url = URL.createObjectURL(file);
   const name = file.name.replace(/\.[^/.]+$/, "");
-
   return {
     id: `upload-${uploadId}-${Date.now()}`,
     url,
@@ -36,8 +38,9 @@ export function UploadScreen() {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queue = usePlayerStore(selectQueue);
-
-  const isMyMusicPlaying = queue?.channel.id === "my-music";
+  const activeTrack = usePlayerStore(selectActiveTrack);
+  const isPlaying = usePlayerStore(selectIsPlaying);
+  const isMyMusicQueue = queue?.channel.id === "my-music";
 
   const addFiles = useCallback((files: FileList | null) => {
     if (!files) return;
@@ -74,10 +77,9 @@ export function UploadScreen() {
     });
   }, []);
 
-  const playMyMusic = useCallback(() => {
+  const playAll = useCallback(() => {
     if (uploadedTracks.length === 0) return;
-
-    const myChannel: Channel = {
+    const channel: Channel = {
       id: "my-music",
       url: "",
       name: "My Music",
@@ -86,9 +88,42 @@ export function UploadScreen() {
       tracks: uploadedTracks,
       order: 999,
     };
-
-    playChannel(myChannel, true);
+    playChannel(channel, true);
   }, [uploadedTracks]);
+
+  const playTrackAt = useCallback(
+    (index: number) => {
+      if (uploadedTracks.length === 0) return;
+      // Reorder tracks so the clicked one is first, rest follow in order
+      const reordered = [
+        ...uploadedTracks.slice(index),
+        ...uploadedTracks.slice(0, index),
+      ];
+      const channel: Channel = {
+        id: "my-music",
+        url: "",
+        name: "My Music",
+        slug: "my-music",
+        totalTracks: reordered.length,
+        tracks: reordered,
+        order: 999,
+      };
+      playChannel(channel, true);
+    },
+    [uploadedTracks]
+  );
+
+  const handleTrackClick = useCallback(
+    (track: Track, index: number) => {
+      // If this track is already playing, toggle play/pause
+      if (isMyMusicQueue && activeTrack?.id === track.id) {
+        togglePlay();
+      } else {
+        playTrackAt(index);
+      }
+    },
+    [isMyMusicQueue, activeTrack, playTrackAt]
+  );
 
   return (
     <div className="relative flex-1 overflow-y-auto bg-background">
@@ -105,9 +140,7 @@ export function UploadScreen() {
               backgroundColor: isDragOver
                 ? "var(--theme-primary)"
                 : undefined,
-              color: isDragOver
-                ? "var(--theme-secondary)"
-                : undefined,
+              color: isDragOver ? "var(--theme-secondary)" : undefined,
             }}
           >
             <Upload className="h-8 w-8" />
@@ -133,7 +166,10 @@ export function UploadScreen() {
               accept="audio/*"
               multiple
               className="hidden"
-              onChange={(e) => addFiles(e.target.files)}
+              onChange={(e) => {
+                addFiles(e.target.files);
+                e.target.value = "";
+              }}
             />
           </div>
         </RetroCard>
@@ -142,16 +178,16 @@ export function UploadScreen() {
         {uploadedTracks.length > 0 && (
           <RetroCard shadowSize="big" containerClassName="w-full">
             <div className="flex flex-col rounded-[var(--radius)]">
-              {/* Header with play button */}
+              {/* Header */}
               <div className="flex items-center justify-between bg-foreground p-3">
                 <span className="text-sm font-bold font-sans text-primary-foreground">
                   {`My Music (${uploadedTracks.length})`}
                 </span>
-                <RetroCard inverted onClick={playMyMusic}>
+                <RetroCard inverted onClick={playAll}>
                   <div className="flex items-center gap-1.5 px-3 py-1">
                     <Play className="h-3 w-3 fill-primary-foreground" />
                     <span className="text-xs font-bold font-sans text-primary-foreground">
-                      {isMyMusicPlaying ? "Playing" : "Play All"}
+                      {isMyMusicQueue && isPlaying ? "Playing" : "Play All"}
                     </span>
                   </div>
                 </RetroCard>
@@ -161,27 +197,66 @@ export function UploadScreen() {
 
               {/* Tracks */}
               <div className="flex flex-col">
-                {uploadedTracks.map((track, i) => (
-                  <div
-                    key={track.id}
-                    className="flex items-center gap-3 border-b border-foreground/10 px-4 py-3 last:border-b-0"
-                  >
-                    <span className="w-5 text-right text-xs font-sans text-muted-foreground">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <Music className="h-3 w-3 flex-shrink-0 text-foreground" />
-                    <span className="flex-1 truncate text-xs font-sans font-bold text-foreground">
-                      {track.title}
-                    </span>
+                {uploadedTracks.map((track, i) => {
+                  const isActive =
+                    isMyMusicQueue && activeTrack?.id === track.id;
+                  const isTrackPlaying = isActive && isPlaying;
+                  return (
                     <button
-                      onClick={() => removeTrack(track.id)}
-                      className="flex h-6 w-6 items-center justify-center text-muted-foreground hover:text-foreground"
-                      aria-label={`Remove ${track.title}`}
+                      key={track.id}
+                      onClick={() => handleTrackClick(track, i)}
+                      className="flex items-center gap-3 border-b border-foreground/10 px-4 py-3 text-left transition-colors last:border-b-0 hover:opacity-70"
+                      style={
+                        isActive
+                          ? {
+                              backgroundColor: "var(--theme-primary)",
+                              color: "var(--theme-secondary)",
+                            }
+                          : undefined
+                      }
                     >
-                      <Trash2 className="h-3 w-3" />
+                      <span
+                        className="w-5 text-right text-xs font-sans"
+                        style={{
+                          color: isActive
+                            ? "var(--theme-secondary)"
+                            : undefined,
+                          opacity: isActive ? 0.6 : 0.4,
+                        }}
+                      >
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      {isTrackPlaying ? (
+                        <Pause className="h-3 w-3 flex-shrink-0 fill-current" />
+                      ) : isActive ? (
+                        <Play className="h-3 w-3 flex-shrink-0 fill-current" />
+                      ) : (
+                        <Music className="h-3 w-3 flex-shrink-0" />
+                      )}
+                      <span className="flex-1 truncate text-xs font-sans font-bold">
+                        {track.title}
+                      </span>
+                      <span
+                        className="flex h-6 w-6 items-center justify-center"
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeTrack(track.id);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.stopPropagation();
+                            removeTrack(track.id);
+                          }
+                        }}
+                        aria-label={`Remove ${track.title}`}
+                      >
+                        <Trash2 className="h-3 w-3 opacity-40 hover:opacity-100" />
+                      </span>
                     </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </RetroCard>

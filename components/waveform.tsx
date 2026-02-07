@@ -35,9 +35,19 @@ export function Waveform({ waveformUrl, progress, duration }: WaveformProps) {
 
   const barsNumber = Math.floor(canvasWidth / (BAR_WIDTH + GAP));
 
-  // Fetch waveform data
+  // Fetch waveform data (or generate placeholder for uploaded tracks)
   useEffect(() => {
-    if (!waveformUrl || barsNumber <= 0) return;
+    if (barsNumber <= 0) return;
+
+    if (!waveformUrl) {
+      // Generate random bars for uploaded tracks
+      const bars = Array.from({ length: barsNumber }, () =>
+        Math.round(8 + Math.random() * (HEIGHT - 16))
+      );
+      setWaveformData(bars);
+      return;
+    }
+
     let cancelled = false;
 
     fetch(waveformUrl)
@@ -51,7 +61,15 @@ export function Waveform({ waveformUrl, progress, duration }: WaveformProps) {
           grouped.map((bar) => Math.round((bar * HEIGHT) / referenceHeight))
         );
       })
-      .catch(() => {});
+      .catch(() => {
+        // Fallback bars on error
+        if (!cancelled) {
+          const bars = Array.from({ length: barsNumber }, () =>
+            Math.round(8 + Math.random() * (HEIGHT - 16))
+          );
+          setWaveformData(bars);
+        }
+      });
 
     return () => {
       cancelled = true;

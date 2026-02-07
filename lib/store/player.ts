@@ -71,6 +71,26 @@ function getAudio(): HTMLAudioElement {
     audioElement.addEventListener("canplay", () => {
       usePlayerStore.setState({ isBuffering: false });
     });
+    audioElement.addEventListener("loadedmetadata", () => {
+      const audio = audioElement;
+      if (!audio || isNaN(audio.duration)) return;
+      const durationMs = Math.round(audio.duration * 1000);
+      // Update track duration if it was unknown (e.g. uploaded files)
+      const state = usePlayerStore.getState();
+      if (state.queue) {
+        const tracks = state.queue.channel.tracks.map((t) =>
+          t.id === state.queue!.activeTrackId && t.durationMs === 0
+            ? { ...t, durationMs }
+            : t
+        );
+        usePlayerStore.setState({
+          queue: {
+            ...state.queue,
+            channel: { ...state.queue.channel, tracks },
+          },
+        });
+      }
+    });
     audioElement.addEventListener("error", () => {
       playNext(false);
     });
