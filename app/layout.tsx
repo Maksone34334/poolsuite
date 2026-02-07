@@ -4,8 +4,8 @@ import "./globals.css";
 
 const chicago = localFont({
   src: [
-    { path: "../public/fonts/Chicago.ttf", weight: "700", style: "normal" },
-    { path: "../public/fonts/ChicagoLight.ttf", weight: "400", style: "normal" },
+    { path: "../assets/fonts/Chicago.ttf", weight: "700", style: "normal" },
+    { path: "../assets/fonts/ChicagoLight.ttf", weight: "400", style: "normal" },
   ],
   variable: "--font-chicago",
   display: "swap",
